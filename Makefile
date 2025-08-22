@@ -5,13 +5,12 @@ all: build test
 
 build:
 	@echo "Building..."
-	
-	
 	@go build -o main.exe cmd/api/main.go
 
 # Run the application
 run:
 	@go run cmd/api/main.go
+
 # Create DB container
 docker-run:
 	@docker compose up --build
@@ -20,10 +19,23 @@ docker-run:
 docker-down:
 	@docker compose down
 
+# Build and run the Docker container with live reload (Air)
+# ! Include PORT in the command (e.g. make docker-dev PORT=5000)
+docker-dev:
+	@echo "Building Docker image..."
+	@docker build --target dev -t url-shortener-dev .
+	@echo "Running container with live reload..."
+	@docker run -p ${PORT}:${PORT} --rm \
+		-v "${CURDIR}:/app" \
+		-v "${CURDIR}/tmp:/app/tmp" \
+		--name url-shortener-air \
+		url-shortener-dev
+
 # Test the application
 test:
 	@echo "Testing..."
 	@go test ./... -v
+
 # Integrations Tests for the application
 itest:
 	@echo "Running integration tests..."
@@ -33,6 +45,11 @@ itest:
 clean:
 	@echo "Cleaning..."
 	@rm -f main
+
+# Format code and tidy modules
+format:
+	go fmt ./...
+	go mod tidy 
 
 # Live Reload
 watch:

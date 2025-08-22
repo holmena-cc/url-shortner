@@ -1,18 +1,22 @@
-FROM golang:1.24.4-alpine AS build
-
+# Base stage
+FROM golang:1.24.5-alpine AS base
 WORKDIR /app
+
+RUN apk add --no-cache make git
 
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN go build -o main cmd/api/main.go
-
-FROM alpine:3.20.1 AS prod
-WORKDIR /app
-COPY --from=build /app/main /app/main
+# Dev stage
+FROM base AS dev
+RUN go install github.com/air-verse/air@latest
 EXPOSE ${PORT}
-CMD ["./main"]
+CMD ["air", "-c", ".air.toml"]
 
-
+# Prod stage
+FROM base AS prod
+RUN go build -o /app/main ./cmd/api/main.go
+EXPOSE ${PORT}
+CMD ["/app/main"]
