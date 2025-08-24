@@ -32,3 +32,10 @@ main
 # OS X generated file
 .DS_Store
 
+# Node modules
+node_modules/
+
+# npm logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

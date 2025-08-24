@@ -11,6 +11,9 @@ build:
 run:
 	@go run cmd/api/main.go
 
+tailwind:
+	npx tailwindcss -i ./web/static/input.css -o ./web/static/output.css --watch
+
 # Create DB container
 docker-run:
 	@docker compose up --build
