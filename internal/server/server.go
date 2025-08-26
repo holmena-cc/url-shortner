@@ -23,8 +23,7 @@ func NewServer() *http.Server {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 	srv := &Server{
 		port: port,
-
-		db: nil, //database.New(),
+		db: database.New(),
 	}
 	if err := srv.LoadTemplates(); err != nil {
 		panic(fmt.Sprintf("Failed to load templates: %v", err))

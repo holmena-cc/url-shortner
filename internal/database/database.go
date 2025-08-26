@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"my_project/internal/db"
 	"os"
 	"strconv"
 	"time"
@@ -15,17 +16,14 @@ import (
 
 // Service represents a service that interacts with a database.
 type Service interface {
-	// Health returns a map of health status information.
-	// The keys and values in the map are service-specific.
 	Health() map[string]string
-
-	// Close terminates the database connection.
-	// It returns an error if the connection cannot be closed.
 	Close() error
+	DB() *db.Queries
 }
 
 type service struct {
 	db *sql.DB
+	Queries *db.Queries
 }
 
 var (
@@ -39,19 +37,29 @@ var (
 )
 
 func New() Service {
-	// Reuse Connection
-	if dbInstance != nil {
-		return dbInstance
-	}
-	connStr := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s", username, password, host, port, database, schema)
-	db, err := sql.Open("pgx", connStr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	dbInstance = &service{
-		db: db,
-	}
-	return dbInstance
+    if dbInstance != nil {
+        return dbInstance
+    }
+    connStr := fmt.Sprintf(
+        "postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s",
+        username, password, host, port, database, schema,
+    )
+    sqlDB, err := sql.Open("pgx", connStr)
+    if err != nil {
+        log.Fatal(err)
+    }
+    // Create the sqlc Queries object
+    queries := db.New(sqlDB)
+
+    dbInstance = &service{
+        db:      sqlDB,
+        Queries: queries,
+    }
+    return dbInstance
+}
+
+func (s *service) DB() *db.Queries {
+    return s.Queries
 }
 
 // Health checks the health of the database connection by pinging the database.
