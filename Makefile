@@ -22,18 +22,6 @@ docker-run:
 docker-down:
 	@docker compose down
 
-# Build and run the Docker container with live reload (Air)
-# ! Include PORT in the command (e.g. make docker-dev PORT=5000)
-docker-dev:
-	@echo "Building Docker image..."
-	@docker build --target dev -t url-shortener-dev .
-	@echo "Running container with live reload..."
-	@docker run -p ${PORT}:${PORT} --rm \
-		-v "${CURDIR}:/app" \
-		-v "${CURDIR}/tmp:/app/tmp" \
-		--name url-shortener-air \
-		url-shortener-dev
-
 # Test the application
 test:
 	@echo "Testing..."
@@ -51,19 +39,7 @@ clean:
 
 # Format code and tidy modules
 format:
-	go fmt ./...
-	go mod tidy 
+	@go fmt ./...
+	@go mod tidy 
 
-# Live Reload
-watch:
-	@powershell -ExecutionPolicy Bypass -Command "if (Get-Command air -ErrorAction SilentlyContinue) { \
-		air; \
-		Write-Output 'Watching...'; \
-	} else { \
-		Write-Output 'Installing air...'; \
-		go install github.com/air-verse/air@latest; \
-		air; \
-		Write-Output 'Watching...'; \
-	}"
-
-.PHONY: all build run test clean watch docker-run docker-down itest
+.PHONY: build run tailwind docker-run docker-down test itest clean format

@@ -22,7 +22,7 @@ type Service interface {
 }
 
 type service struct {
-	db *sql.DB
+	db      *sql.DB
 	Queries *db.Queries
 }
 
@@ -37,29 +37,29 @@ var (
 )
 
 func New() Service {
-    if dbInstance != nil {
-        return dbInstance
-    }
-    connStr := fmt.Sprintf(
-        "postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s",
-        username, password, host, port, database, schema,
-    )
-    sqlDB, err := sql.Open("pgx", connStr)
-    if err != nil {
-        log.Fatal(err)
-    }
-    // Create the sqlc Queries object
-    queries := db.New(sqlDB)
+	if dbInstance != nil {
+		return dbInstance
+	}
+	connStr := fmt.Sprintf(
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s",
+		username, password, host, port, database, schema,
+	)
+	sqlDB, err := sql.Open("pgx", connStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// Create the sqlc Queries object
+	queries := db.New(sqlDB)
 
-    dbInstance = &service{
-        db:      sqlDB,
-        Queries: queries,
-    }
-    return dbInstance
+	dbInstance = &service{
+		db:      sqlDB,
+		Queries: queries,
+	}
+	return dbInstance
 }
 
 func (s *service) DB() *db.Queries {
-    return s.Queries
+	return s.Queries
 }
 
 // Health checks the health of the database connection by pinging the database.

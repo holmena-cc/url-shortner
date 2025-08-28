@@ -6,7 +6,6 @@ import (
 	"net/http"
 )
 
-
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
 	resp, err := json.Marshal(s.db.Health())
 	if err != nil {

@@ -7,23 +7,23 @@ import (
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
-	mux := http.NewServeMux()	// Register routes
+	mux := http.NewServeMux() // Register routes
 	// mux.HandleFunc("/health",s.healthHandler)
 	mux.HandleFunc("/", s.homeHandler)
-    mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 
 	// Wrap the mux with CORS middleware
 	return s.corsMiddleware(mux)
 }
 
 func (s *Server) LoadTemplates() error {
-    // Parse all templates in the templates folder
-    tmpl, err := template.ParseGlob(filepath.Join("web", "templates", "*.html"))
-    if err != nil {
-        return err
-    }
-    s.templates = tmpl
-    return nil
+	// Parse all templates in the templates folder
+	tmpl, err := template.ParseGlob(filepath.Join("web", "templates", "*.html"))
+	if err != nil {
+		return err
+	}
+	s.templates = tmpl
+	return nil
 }
 
 func (s *Server) corsMiddleware(next http.Handler) http.Handler {
@@ -44,5 +44,3 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
-
