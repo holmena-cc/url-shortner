@@ -7,10 +7,14 @@ import (
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
-	mux := http.NewServeMux() // Register routes
-	// mux.HandleFunc("/health",s.healthHandler)
+	mux := http.NewServeMux()
+
+	// Register routes
 	mux.HandleFunc("/", s.homeHandler)
+	mux.HandleFunc("/login", s.loginHandler)
+	mux.HandleFunc("/register", s.registerHandler)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
+	mux.HandleFunc("/health", s.healthHandler)
 
 	// Wrap the mux with CORS middleware
 	return s.corsMiddleware(mux)

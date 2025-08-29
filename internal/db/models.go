@@ -22,7 +22,6 @@ type User struct {
 	UserID       int32
 	Email        string
 	PasswordHash string
-	Username     string
 	RegisterDate time.Time
 }
 

@@ -11,33 +11,26 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, email, password_hash)
-VALUES ($1, $2, $3)
-RETURNING user_id, username, email, register_date
+INSERT INTO users (email, password_hash)
+VALUES ($1, $2)
+RETURNING user_id, email, register_date
 `
 
 type CreateUserParams struct {
-	Username     string
 	Email        string
 	PasswordHash string
 }
 
 type CreateUserRow struct {
 	UserID       int32
-	Username     string
 	Email        string
 	RegisterDate time.Time
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Email, arg.PasswordHash)
+	row := q.db.QueryRowContext(ctx, createUser, arg.Email, arg.PasswordHash)
 	var i CreateUserRow
-	err := row.Scan(
-		&i.UserID,
-		&i.Username,
-		&i.Email,
-		&i.RegisterDate,
-	)
+	err := row.Scan(&i.UserID, &i.Email, &i.RegisterDate)
 	return i, err
 }
 
@@ -51,25 +44,16 @@ func (q *Queries) DeleteUser(ctx context.Context, userID int32) error {
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT user_id, username, email, password_hash, register_date
+SELECT user_id, email, password_hash, register_date
 FROM users
 WHERE email = $1
 `
 
-type GetUserByEmailRow struct {
-	UserID       int32
-	Username     string
-	Email        string
-	PasswordHash string
-	RegisterDate time.Time
-}
-
-func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
-	var i GetUserByEmailRow
+	var i User
 	err := row.Scan(
 		&i.UserID,
-		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
 		&i.RegisterDate,
@@ -78,25 +62,16 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEm
 }
 
 const getUserByID = `-- name: GetUserByID :one
-SELECT user_id, username, email, password_hash, register_date
+SELECT user_id, email, password_hash, register_date
 FROM users
 WHERE user_id = $1
 `
 
-type GetUserByIDRow struct {
-	UserID       int32
-	Username     string
-	Email        string
-	PasswordHash string
-	RegisterDate time.Time
-}
-
-func (q *Queries) GetUserByID(ctx context.Context, userID int32) (GetUserByIDRow, error) {
+func (q *Queries) GetUserByID(ctx context.Context, userID int32) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByID, userID)
-	var i GetUserByIDRow
+	var i User
 	err := row.Scan(
 		&i.UserID,
-		&i.Username,
 		&i.Email,
 		&i.PasswordHash,
 		&i.RegisterDate,
@@ -105,14 +80,13 @@ func (q *Queries) GetUserByID(ctx context.Context, userID int32) (GetUserByIDRow
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT user_id, username, email, register_date
+SELECT user_id, email, register_date
 FROM users
 ORDER BY register_date DESC
 `
 
 type ListUsersRow struct {
 	UserID       int32
-	Username     string
 	Email        string
 	RegisterDate time.Time
 }
@@ -126,12 +100,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 	var items []ListUsersRow
 	for rows.Next() {
 		var i ListUsersRow
-		if err := rows.Scan(
-			&i.UserID,
-			&i.Username,
-			&i.Email,
-			&i.RegisterDate,
-		); err != nil {
+		if err := rows.Scan(&i.UserID, &i.Email, &i.RegisterDate); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -143,36 +112,4 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 		return nil, err
 	}
 	return items, nil
-}
-
-const updateUser = `-- name: UpdateUser :one
-UPDATE users
-SET username = $2, email = $3
-WHERE user_id = $1
-RETURNING user_id, username, email, register_date
-`
-
-type UpdateUserParams struct {
-	UserID   int32
-	Username string
-	Email    string
-}
-
-type UpdateUserRow struct {
-	UserID       int32
-	Username     string
-	Email        string
-	RegisterDate time.Time
-}
-
-func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (UpdateUserRow, error) {
-	row := q.db.QueryRowContext(ctx, updateUser, arg.UserID, arg.Username, arg.Email)
-	var i UpdateUserRow
-	err := row.Scan(
-		&i.UserID,
-		&i.Username,
-		&i.Email,
-		&i.RegisterDate,
-	)
-	return i, err
 }
