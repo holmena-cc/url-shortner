@@ -18,8 +18,17 @@ func (s *Server) homeHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-
-	err = tmpl.ExecuteTemplate(w, "base", nil)
+	type HomePageData struct {
+		LongURL     string
+		CustomAlias string
+		Error       string
+	}
+	data := HomePageData{
+		LongURL:     "",
+		CustomAlias: "",
+		Error:       "",
+	}
+	err = tmpl.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		http.Error(w, "failed to render page", http.StatusInternalServerError)
 		fmt.Println("failed to render err:", err)

@@ -1,0 +1,2 @@
+ALTER TABLE urls
+ALTER COLUMN custom_alias SET NOT NULL;

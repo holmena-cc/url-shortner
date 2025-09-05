@@ -1,0 +1,48 @@
+{{define "content"}}
+<section class="bg-gray-900 min-h-[70vh] flex flex-col items-center justify-center px-4 py-12">
+  <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-xl flex flex-col space-y-6">
+    <h2 class="text-gray-100 text-3xl font-bold text-center mb-4">Here is your shortened URL</h2>
+    <p class="text-gray-400 text-center mb-6">
+      Copy the short link and share it in messages, texts, posts, websites, or other locations.
+    </p>
+
+    <!-- Short URL with copy button -->
+    <div class="flex items-center mb-6 space-x-2">
+      <input 
+        type="text" 
+        id="shortUrl" 
+        value="{{.ShortURL}}" 
+        readonly 
+        class="flex-1 px-4 py-3 rounded-lg bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+      >
+      <button 
+        type="button" 
+        onclick="copyShortURL()"
+        class="px-4 py-3 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+      >
+        Copy URL
+      </button>
+    </div>
+
+    <!-- Long URL display -->
+    <p class="text-gray-100">
+      <strong>Long URL:</strong> 
+      <span class="text-gray-400 break-all">{{.LongURL}}</span>
+    </p>
+
+    <!-- Link to shorten another URL -->
+    <p class="text-center">
+      <a href="/" class="text-gray-400 hover:text-red-500 transition">Shorten another URL</a>
+    </p>
+  </div>
+</section>
+
+<!-- JavaScript for copy button -->
+<script>
+function copyShortURL() {
+  const shortUrl = document.getElementById("shortUrl").value;
+  navigator.clipboard.writeText(shortUrl)
+    .catch(err => console.error(err));
+}
+</script>
+{{end}}

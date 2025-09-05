@@ -13,7 +13,7 @@ type Url struct {
 	UrlID        int32
 	OriginalUrl  string
 	ShortCode    string
-	CustomAlias  sql.NullString
+	CustomAlias  string
 	CreationDate time.Time
 	UserID       int32
 }

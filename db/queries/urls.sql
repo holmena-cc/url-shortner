@@ -27,3 +27,10 @@ RETURNING url_id, short_code, original_url, custom_alias, creation_date;
 
 -- name: DeleteURL :exec
 DELETE FROM urls WHERE url_id = $1;
+
+-- name: AliasExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM urls
+    WHERE custom_alias = $1
+);

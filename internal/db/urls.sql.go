@@ -7,9 +7,23 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"time"
 )
+
+const aliasExists = `-- name: AliasExists :one
+SELECT EXISTS (
+    SELECT 1
+    FROM urls
+    WHERE custom_alias = $1
+)
+`
+
+func (q *Queries) AliasExists(ctx context.Context, customAlias string) (bool, error) {
+	row := q.db.QueryRowContext(ctx, aliasExists, customAlias)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
 
 const createURL = `-- name: CreateURL :one
 INSERT INTO urls (user_id, original_url, short_code, custom_alias)
@@ -21,7 +35,7 @@ type CreateURLParams struct {
 	UserID      int32
 	OriginalUrl string
 	ShortCode   string
-	CustomAlias sql.NullString
+	CustomAlias string
 }
 
 type CreateURLRow struct {
@@ -29,7 +43,7 @@ type CreateURLRow struct {
 	UserID       int32
 	OriginalUrl  string
 	ShortCode    string
-	CustomAlias  sql.NullString
+	CustomAlias  string
 	CreationDate time.Time
 }
 
@@ -72,7 +86,7 @@ type GetURLByCodeRow struct {
 	UserID       int32
 	OriginalUrl  string
 	ShortCode    string
-	CustomAlias  sql.NullString
+	CustomAlias  string
 	CreationDate time.Time
 }
 
@@ -101,7 +115,7 @@ type GetURLByIDRow struct {
 	UserID       int32
 	OriginalUrl  string
 	ShortCode    string
-	CustomAlias  sql.NullString
+	CustomAlias  string
 	CreationDate time.Time
 }
 
@@ -130,7 +144,7 @@ type ListURLsByUserRow struct {
 	UrlID        int32
 	ShortCode    string
 	OriginalUrl  string
-	CustomAlias  sql.NullString
+	CustomAlias  string
 	CreationDate time.Time
 }
 
@@ -174,14 +188,14 @@ type UpdateURLParams struct {
 	UrlID       int32
 	OriginalUrl string
 	ShortCode   string
-	CustomAlias sql.NullString
+	CustomAlias string
 }
 
 type UpdateURLRow struct {
 	UrlID        int32
 	ShortCode    string
 	OriginalUrl  string
-	CustomAlias  sql.NullString
+	CustomAlias  string
 	CreationDate time.Time
 }
 

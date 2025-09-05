@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"html/template"
 	"net/http"
 	"os"
 	"strconv"
@@ -32,7 +31,6 @@ type LoginPageData struct {
 
 type Server struct {
 	port      int
-	templates *template.Template
 	db        database.Service
 }
 
@@ -41,9 +39,6 @@ func NewServer() *http.Server {
 	srv := &Server{
 		port: port,
 		db:   database.New(),
-	}
-	if err := srv.LoadTemplates(); err != nil {
-		panic(fmt.Sprintf("Failed to load templates: %v", err))
 	}
 	// Declare Server config
 	server := &http.Server{
