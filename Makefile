@@ -12,7 +12,7 @@ run:
 	@go run cmd/api/main.go
 
 tailwind:
-	npx tailwindcss -i ./web/static/input.css -o ./web/static/output.css --watch
+	npx tailwindcss -i ./web/static/input.css -o ./web/static/output.css
 
 # Create DB container
 docker-run:

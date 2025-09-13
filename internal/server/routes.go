@@ -11,7 +11,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 	mux.HandleFunc("/", s.homeHandler)
 	mux.HandleFunc("/login", s.loginHandler)
 	mux.HandleFunc("/shortner", s.shortnerHandler)
+	mux.HandleFunc("/contact", s.contactHandler)
+	mux.HandleFunc("/api/contact", s.contactFormHandler)
 	mux.HandleFunc("/register", s.registerHandler)
+	mux.HandleFunc("/thankyou", s.thankyouHandler)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 	mux.HandleFunc("/health", s.healthHandler)
 
