@@ -8,6 +8,10 @@ import (
 	"os"
 )
 
+type ContactPageData struct {
+	IsLoggedIn bool
+}
+
 func (s *Server) contactHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles(
 		"web/templates/base.html",
@@ -20,7 +24,11 @@ func (s *Server) contactHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	err = tmpl.ExecuteTemplate(w, "base", nil)
+	_, ok := r.Context().Value(userIDKey).(int32)
+	data := ContactPageData{
+		IsLoggedIn:  ok,
+	}
+	err = tmpl.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		http.Error(w, "failed to render page", http.StatusInternalServerError)
 		fmt.Println("failed to render err:", err)

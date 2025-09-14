@@ -7,6 +7,10 @@ import (
 	"my_project/internal/db"
 	"net/http"
 )
+type LoginPageData struct {
+	Error string
+	Email string
+}
 
 func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse templates once
@@ -39,16 +43,25 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 
 		email := r.FormValue("email")
 		password := r.FormValue("password")
+		ConfirmPassword := r.FormValue("ConfirmPassword")
 
 		_, dbErr := s.db.DB().GetUserByEmail(context.Background(), email)
 		// If a user with this email already exists
 		if dbErr == nil {
 			tmpl.ExecuteTemplate(w, "base", LoginPageData{
 				Error: "❌ User with this email already exists",
+				Email: "",
 			})
 			return
 		}
+		if password != ConfirmPassword {
+			tmpl.ExecuteTemplate(w, "base", LoginPageData{
+				Error: "❌ Passwords do not match",
+				Email: email,
 
+			})
+			return
+		}
 		passwordHash, err := HashPassword(password)
 		if err != nil {
 			http.Error(w, "internal error", http.StatusInternalServerError)

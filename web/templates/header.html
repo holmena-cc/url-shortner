@@ -8,7 +8,11 @@
         <a href="/" class="text-blue-400 hover:text-red-500 transition-colors">Home</a>
         <a href="/urls" class="text-blue-400 hover:text-red-500 transition-colors">My URLs</a>
         <a href="/contact" class="text-blue-400 hover:text-red-500 transition-colors">Contact us</a>
-        <a href="/login" class="text-blue-400 hover:text-red-500 transition-colors">Login</a>
+        {{if .IsLoggedIn}}
+            <a href="/logout" class="text-blue-400 hover:text-red-500 transition-colors">Logout</a>
+        {{else}}
+            <a href="/login" class="text-blue-400 hover:text-red-500 transition-colors">Login</a>
+        {{end}}
     </nav>
 </header>
 {{end}}

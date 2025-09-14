@@ -6,8 +6,16 @@ import (
 	"my_project/internal/db"
 	"net/http"
 )
+type URLsPageData struct {
+	UrlsCount   int
+	TotalClicks int
+	URLs        []db.ListURLsByUserWithClicksRow
+	IsLoggedIn  bool
+}
 
 func (s *Server) urlsHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(userIDKey).(int32)
+	
 	tmpl, err := template.ParseFiles(
 		"web/templates/base.html",
 		"web/templates/urls.html",
@@ -20,9 +28,7 @@ func (s *Server) urlsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-	var userId int32 = 2
-
-	urls, err := s.db.DB().ListURLsByUserWithClicks(ctx, userId)
+	urls, err := s.db.DB().ListURLsByUserWithClicks(ctx, userID)
 	if err != nil {
 		http.Error(w, "failed to fetch urls", http.StatusInternalServerError)
 		fmt.Println("db error:", err)
@@ -32,15 +38,11 @@ func (s *Server) urlsHandler(w http.ResponseWriter, r *http.Request) {
 	for _, u := range urls {
 		totalClicks += int(u.Clicks)
 	}
-	type URLsPageData struct {
-		UrlsCount   int
-		TotalClicks int
-		URLs        []db.ListURLsByUserWithClicksRow
-	}
 	data := URLsPageData{
 		UrlsCount:   len(urls),
 		TotalClicks: totalClicks,
 		URLs:        urls,
+		IsLoggedIn:  true,
 	}
 
 	err = tmpl.ExecuteTemplate(w, "base", data)

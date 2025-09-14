@@ -3,42 +3,28 @@ package server
 import (
 	"net/http"
 )
-
 func (s *Server) RegisterRoutes() http.Handler {
 	mux := http.NewServeMux()
 
-	// Register routes
-	mux.HandleFunc("/", s.homeHandler)
-	mux.HandleFunc("/login", s.loginHandler)
-	mux.HandleFunc("/shortner", s.shortnerHandler)
-	mux.HandleFunc("/contact", s.contactHandler)
-	mux.HandleFunc("/api/contact", s.contactFormHandler)
-	mux.HandleFunc("/register", s.registerHandler)
-	mux.HandleFunc("/r/", s.redirectHandler)
-	mux.HandleFunc("/urls", s.urlsHandler)
-	mux.HandleFunc("/thankyou", s.thankyouHandler)
+	// Public routes with optional auth
+	mux.Handle("/", AuthMiddlewareOptional(http.HandlerFunc(s.homeHandler)))
+	mux.Handle("/login", AuthMiddlewareOptional(http.HandlerFunc(s.loginHandler)))
+	mux.Handle("/register", AuthMiddlewareOptional(http.HandlerFunc(s.registerHandler)))
+	mux.Handle("/contact", AuthMiddlewareOptional(http.HandlerFunc(s.contactHandler)))
+	mux.Handle("/api/contact", AuthMiddlewareOptional(http.HandlerFunc(s.contactFormHandler)))
+	mux.Handle("/thankyou", AuthMiddlewareOptional(http.HandlerFunc(s.thankyouHandler)))
+	mux.Handle("/logout", AuthMiddlewareOptional(http.HandlerFunc(s.logoutHandler)))
+	mux.Handle("/r/", AuthMiddlewareOptional(http.HandlerFunc(s.redirectHandler)))
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
-	mux.HandleFunc("/health", s.healthHandler)
+	mux.Handle("/health", AuthMiddlewareOptional(http.HandlerFunc(s.healthHandler)))
 
-	// Wrap the mux with CORS middleware
-	return s.corsMiddleware(mux)
+	// Protected routes (requires login)
+	mux.Handle("/urls", AuthMiddleware(http.HandlerFunc(s.urlsHandler)))
+	mux.Handle("/shortner", AuthMiddleware(http.HandlerFunc(s.shortnerHandler)))
+
+	return mux
 }
 
-func (s *Server) corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Set CORS headers
-		w.Header().Set("Access-Control-Allow-Origin", "*") // Replace "*" with specific origins if needed
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH")
-		w.Header().Set("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, X-CSRF-Token")
-		w.Header().Set("Access-Control-Allow-Credentials", "false") // Set to "true" if credentials are required
 
-		// Handle preflight OPTIONS requests
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
 
-		// Proceed with the next handler
-		next.ServeHTTP(w, r)
-	})
-}
+

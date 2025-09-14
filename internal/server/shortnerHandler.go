@@ -8,41 +8,40 @@ import (
 	"time"
 )
 
-type ShortURLPageData struct {
-	LongURL  string
+type PageData struct {
+	LongURL     string
+	CustomAlias string
+	Error       string
 	ShortURL string
+	IsLoggedIn  bool
 }
 
 func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(userIDKey).(int32)
 	if err := r.ParseForm(); err != nil {
 		http.Error(w, "failed to parse form", http.StatusBadRequest)
 		return
 	}
-
+	
 	longURL := r.FormValue("long_url")
 	customAlias := r.FormValue("custom_alias")
 	ctx := r.Context()
+	
+	tmpl, _ := template.ParseFiles(
+		"web/templates/base.html",
+		"web/templates/header.html",
+		"web/templates/footer.html",
+		"web/templates/home.html",
+	)
 
-	// Struct to pass data to template
-	type PageData struct {
-		LongURL     string
-		CustomAlias string
-		Error       string
+	data := PageData{
+		LongURL:     longURL,
+		CustomAlias: customAlias,
+		IsLoggedIn : true,
 	}
-
 	// Check for empty long URL
 	if longURL == "" {
-		tmpl, _ := template.ParseFiles(
-			"web/templates/base.html",
-			"web/templates/header.html",
-			"web/templates/footer.html",
-			"web/templates/home.html",
-		)
-		data := PageData{
-			LongURL:     longURL,
-			CustomAlias: customAlias,
-			Error:       "Please enter a URL to shorten",
-		}
+		data.Error ="Please enter a URL to shorten"
 		err := tmpl.ExecuteTemplate(w, "base", data)
 		if err != nil {
 			http.Error(w, "failed to load template", http.StatusInternalServerError)
@@ -56,10 +55,7 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 			candidate := generateCustomAlias(5)
 			exists, err := s.db.DB().AliasExists(ctx, candidate)
 			if err != nil {
-				tmpl, _ := template.ParseFiles("web/templates/base.html", "web/templates/header.html", "web/templates/footer.html", "web/templates/home.html")
-				data := PageData{
-					Error: "Database error, please try again",
-				}
+				data.Error =  "Database error, please try again"
 				err = tmpl.ExecuteTemplate(w, "base", data)
 				if err != nil {
 					http.Error(w, "failed to load template", http.StatusInternalServerError)
@@ -74,10 +70,7 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		exists, err := s.db.DB().AliasExists(ctx, customAlias)
 		if err != nil {
-			tmpl, _ := template.ParseFiles("web/templates/base.html", "web/templates/header.html", "web/templates/footer.html", "web/templates/home.html")
-			data := PageData{
-				Error: "Database error, please try again",
-			}
+			data.Error = "Database error, please try again"
 			err = tmpl.ExecuteTemplate(w, "base", data)
 			if err != nil {
 				http.Error(w, "failed to load template", http.StatusInternalServerError)
@@ -85,12 +78,7 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if exists {
-			tmpl, _ := template.ParseFiles("web/templates/base.html", "web/templates/header.html", "web/templates/footer.html", "web/templates/home.html")
-			data := PageData{
-				LongURL:     longURL,
-				CustomAlias: customAlias,
-				Error:       "Custom alias already taken",
-			}
+			data.Error = "Custom alias already taken"
 			err = tmpl.ExecuteTemplate(w, "base", data)
 			if err != nil {
 				http.Error(w, "failed to load template", http.StatusInternalServerError)
@@ -105,14 +93,11 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 		OriginalUrl: longURL,
 		ShortCode:   shortUrl,
 		CustomAlias: customAlias,
-		UserID:      2,
+		UserID:      userID,
 	}
 	_, err := s.db.DB().CreateURL(ctx, createURLParams)
 	if err != nil {
-		tmpl, _ := template.ParseFiles("web/templates/base.html", "web/templates/header.html", "web/templates/footer.html", "web/templates/home.html")
-		data := PageData{
-			Error: "Failed to create short URL",
-		}
+		data.Error = "Failed to create short URL"
 		err = tmpl.ExecuteTemplate(w, "base", data)
 		if err != nil {
 			http.Error(w, "failed to load template", http.StatusInternalServerError)
@@ -121,16 +106,13 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Success: show shortened URL page
-	tmpl, _ := template.ParseFiles(
+	tmpl, _ = template.ParseFiles(
 		"web/templates/base.html",
 		"web/templates/header.html",
 		"web/templates/footer.html",
 		"web/templates/shortened.html",
 	)
-	data := ShortURLPageData{
-		LongURL:  longURL,
-		ShortURL: shortUrl,
-	}
+	data.ShortURL = shortUrl
 	err = tmpl.ExecuteTemplate(w, "base", data)
 	if err != nil {
 		http.Error(w, "failed to load template", http.StatusInternalServerError)

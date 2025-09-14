@@ -5,8 +5,12 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 )
-
+type loginPageData struct {
+	Error string
+	IsLoggedIn bool
+}
 func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse templates once
 	tmpl, err := template.ParseFiles(
@@ -20,11 +24,16 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("template parse error:", err)
 		return
 	}
-
+	
+	_, ok := r.Context().Value(userIDKey).(int32)
+	data := loginPageData{
+		IsLoggedIn: ok,
+		Error: "",
+	}
 	switch r.Method {
 	case http.MethodGet:
 		// Render the login form
-		if err := tmpl.ExecuteTemplate(w, "base", nil); err != nil {
+		if err := tmpl.ExecuteTemplate(w, "base", data); err != nil {
 			http.Error(w, "failed to render page", http.StatusInternalServerError)
 			fmt.Println("template execute error:", err)
 		}
@@ -41,9 +50,8 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 		user, dbErr := s.db.DB().GetUserByEmail(context.Background(), email)
 		if dbErr != nil {
-			tmpl.ExecuteTemplate(w, "base", LoginPageData{
-				Error: "❌ Incorrect email or password",
-			})
+			data.Error = "❌ Incorrect email or password";
+			tmpl.ExecuteTemplate(w, "base", data)
 			return
 		}
 
@@ -51,7 +59,17 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "❌ Incorrect email or password", http.StatusUnauthorized)
 			return
 		}
-
+		// Generate token
+		token, _ := GenerateToken(user.UserID)
+		// Set token as HttpOnly cookie
+		http.SetCookie(w, &http.Cookie{
+			Name:     "token",
+			Value:    token,
+			Expires:  time.Now().Add(24 * time.Hour),
+			HttpOnly: true,
+			Secure:   false,
+			SameSite: http.SameSiteStrictMode,
+		})
 		// Success
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 
