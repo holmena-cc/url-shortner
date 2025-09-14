@@ -100,12 +100,12 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create short URL
-	shortUrl := "https://shortylink.com/" + customAlias
+	shortUrl := "http://localhost:5000/r/" + customAlias
 	createURLParams := db.CreateURLParams{
 		OriginalUrl: longURL,
 		ShortCode:   shortUrl,
 		CustomAlias: customAlias,
-		UserID:      1,
+		UserID:      2,
 	}
 	_, err := s.db.DB().CreateURL(ctx, createURLParams)
 	if err != nil {

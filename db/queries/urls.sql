@@ -34,3 +34,16 @@ SELECT EXISTS (
     FROM urls
     WHERE custom_alias = $1
 );
+
+-- name: ListURLsByUserWithClicks :many
+SELECT u.*, COUNT(v.click_id) AS clicks
+FROM urls u
+LEFT JOIN visits v ON u.url_id = v.url_id
+WHERE u.user_id = $1
+GROUP BY u.url_id
+ORDER BY u.creation_date DESC;
+
+-- name: GetUrlByAlias :one
+SELECT url_id, original_url
+FROM urls
+WHERE custom_alias = $1;

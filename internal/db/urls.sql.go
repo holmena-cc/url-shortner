@@ -133,6 +133,24 @@ func (q *Queries) GetURLByID(ctx context.Context, urlID int32) (GetURLByIDRow, e
 	return i, err
 }
 
+const getUrlByAlias = `-- name: GetUrlByAlias :one
+SELECT url_id, original_url
+FROM urls
+WHERE custom_alias = $1
+`
+
+type GetUrlByAliasRow struct {
+	UrlID       int32
+	OriginalUrl string
+}
+
+func (q *Queries) GetUrlByAlias(ctx context.Context, customAlias string) (GetUrlByAliasRow, error) {
+	row := q.db.QueryRowContext(ctx, getUrlByAlias, customAlias)
+	var i GetUrlByAliasRow
+	err := row.Scan(&i.UrlID, &i.OriginalUrl)
+	return i, err
+}
+
 const listURLsByUser = `-- name: ListURLsByUser :many
 SELECT url_id, short_code, original_url, custom_alias, creation_date
 FROM urls
@@ -163,6 +181,56 @@ func (q *Queries) ListURLsByUser(ctx context.Context, userID int32) ([]ListURLsB
 			&i.OriginalUrl,
 			&i.CustomAlias,
 			&i.CreationDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listURLsByUserWithClicks = `-- name: ListURLsByUserWithClicks :many
+SELECT u.url_id, u.original_url, u.short_code, u.custom_alias, u.creation_date, u.user_id, COUNT(v.click_id) AS clicks
+FROM urls u
+LEFT JOIN visits v ON u.url_id = v.url_id
+WHERE u.user_id = $1
+GROUP BY u.url_id
+ORDER BY u.creation_date DESC
+`
+
+type ListURLsByUserWithClicksRow struct {
+	UrlID        int32
+	OriginalUrl  string
+	ShortCode    string
+	CustomAlias  string
+	CreationDate time.Time
+	UserID       int32
+	Clicks       int64
+}
+
+func (q *Queries) ListURLsByUserWithClicks(ctx context.Context, userID int32) ([]ListURLsByUserWithClicksRow, error) {
+	rows, err := q.db.QueryContext(ctx, listURLsByUserWithClicks, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListURLsByUserWithClicksRow
+	for rows.Next() {
+		var i ListURLsByUserWithClicksRow
+		if err := rows.Scan(
+			&i.UrlID,
+			&i.OriginalUrl,
+			&i.ShortCode,
+			&i.CustomAlias,
+			&i.CreationDate,
+			&i.UserID,
+			&i.Clicks,
 		); err != nil {
 			return nil, err
 		}
