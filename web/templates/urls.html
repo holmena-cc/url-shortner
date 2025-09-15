@@ -1,19 +1,23 @@
 {{ define "content" }}
 <section class="bg-gray-900 min-h-[70vh] p-6">
   <!-- Dashboard Header Card -->
-  <div class="bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 max-w-4xl mx-auto text-center">
+  <div
+    class="bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 max-w-4xl mx-auto text-center"
+  >
     <h1 class="text-3xl font-bold text-gray-100 mb-2">Your Dashboard</h1>
     <p class="text-gray-400 text-lg">
-      You’ve created 
-      <span class="font-semibold text-red-500">{{ .UrlsCount }}</span> 
-      short links, with 
-      <span class="font-semibold text-green-500">{{ .TotalClicks }}</span> 
+      You’ve created
+      <span class="font-semibold text-red-500">{{ .UrlsCount }}</span>
+      short links, with
+      <span class="font-semibold text-green-500">{{ .TotalClicks }}</span>
       total clicks
     </p>
   </div>
 
   <!-- Table Card -->
-  <div class="overflow-x-auto max-w-6xl mx-auto rounded-2xl bg-gray-800 shadow-lg border border-gray-700">
+  <div
+    class="overflow-x-auto max-w-6xl mx-auto rounded-2xl bg-gray-800 shadow-lg border border-gray-700"
+  >
     <table class="min-w-full text-left text-sm text-gray-300">
       <thead class="bg-gray-700 text-gray-400 uppercase text-xs">
         <tr>
@@ -21,15 +25,33 @@
           <th class="px-4 py-3">Original URL</th>
           <th class="px-4 py-3">Created</th>
           <th class="px-4 py-3">Clicks</th>
+          <th class="px-4 py-3">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-600">
         {{ range .URLs }}
         <tr class="hover:bg-gray-700 transition">
-          <td class="px-4 py-3 font-mono text-blue-400">{{ .ShortCode }}</td>
+          <td class="px-4 py-3 font-mono text-blue-400">
+            <a href="{{ .ShortCode }}" target="_blank" class="hover:underline">
+              {{ .ShortCode }}
+            </a>
+          </td>
           <td class="px-4 py-3 truncate max-w-xs">{{ .OriginalUrl }}</td>
-          <td class="px-4 py-3 text-gray-400">{{ .CreationDate.Format "2006-01-02" }}</td>
+          <td class="px-4 py-3 text-gray-400">
+            {{ .CreationDate.Format "2006-01-02" }}
+          </td>
           <td class="px-4 py-3 font-semibold text-green-500">{{ .Clicks }}</td>
+          <td class="px-4 py-3">
+            <form method="POST" action="/delete-url" class="inline">
+              <input type="hidden" name="shortCode" value="{{ .ShortCode }}" />
+              <button
+                type="submit"
+                class="bg-red-500 hover:bg-red-600 text-white font-semibold px-3 py-1 rounded-lg transition"
+              >
+                Delete
+              </button>
+            </form>
+          </td>
         </tr>
         {{ end }}
       </tbody>

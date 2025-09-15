@@ -21,6 +21,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	// Protected routes (requires login)
 	mux.Handle("/urls", AuthMiddleware(http.HandlerFunc(s.urlsHandler)))
 	mux.Handle("/shortner", AuthMiddleware(http.HandlerFunc(s.shortnerHandler)))
+	mux.Handle("/delete-url", AuthMiddleware(http.HandlerFunc(s.deleteURLHandler)))
+
 
 	return mux
 }

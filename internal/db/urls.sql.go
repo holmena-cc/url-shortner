@@ -67,11 +67,17 @@ func (q *Queries) CreateURL(ctx context.Context, arg CreateURLParams) (CreateURL
 }
 
 const deleteURL = `-- name: DeleteURL :exec
-DELETE FROM urls WHERE url_id = $1
+DELETE FROM urls
+WHERE short_code = $1 AND user_id = $2
 `
 
-func (q *Queries) DeleteURL(ctx context.Context, urlID int32) error {
-	_, err := q.db.ExecContext(ctx, deleteURL, urlID)
+type DeleteURLParams struct {
+	ShortCode string
+	UserID    int32
+}
+
+func (q *Queries) DeleteURL(ctx context.Context, arg DeleteURLParams) error {
+	_, err := q.db.ExecContext(ctx, deleteURL, arg.ShortCode, arg.UserID)
 	return err
 }
 

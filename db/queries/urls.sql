@@ -26,7 +26,8 @@ WHERE url_id = $1
 RETURNING url_id, short_code, original_url, custom_alias, creation_date;
 
 -- name: DeleteURL :exec
-DELETE FROM urls WHERE url_id = $1;
+DELETE FROM urls
+WHERE short_code = $1 AND user_id = $2;
 
 -- name: AliasExists :one
 SELECT EXISTS (

@@ -21,9 +21,7 @@ docker-run:
 # Shutdown DB container
 docker-down:
 	@docker compose down
-# run the migrations
-migrate:
-	docker exec -i urlshortner-psql_bp-1 bash -c "for f in /docker-entrypoint-initdb.d/migrations/*.sql; do psql -U melkey -d blueprint -f $$f; done"
+	
 # Test the application
 test:
 	@echo "Testing..."
