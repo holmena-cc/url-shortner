@@ -26,7 +26,7 @@ func (s *Server) contactHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	_, ok := r.Context().Value(userIDKey).(int32)
 	data := ContactPageData{
-		IsLoggedIn:  ok,
+		IsLoggedIn: ok,
 	}
 	err = tmpl.ExecuteTemplate(w, "base", data)
 	if err != nil {

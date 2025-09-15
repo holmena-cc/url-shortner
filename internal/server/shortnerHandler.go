@@ -12,7 +12,7 @@ type PageData struct {
 	LongURL     string
 	CustomAlias string
 	Error       string
-	ShortURL string
+	ShortURL    string
 	IsLoggedIn  bool
 }
 
@@ -22,11 +22,11 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to parse form", http.StatusBadRequest)
 		return
 	}
-	
+
 	longURL := r.FormValue("long_url")
 	customAlias := r.FormValue("custom_alias")
 	ctx := r.Context()
-	
+
 	tmpl, _ := template.ParseFiles(
 		"web/templates/base.html",
 		"web/templates/header.html",
@@ -37,11 +37,11 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		LongURL:     longURL,
 		CustomAlias: customAlias,
-		IsLoggedIn : true,
+		IsLoggedIn:  true,
 	}
 	// Check for empty long URL
 	if longURL == "" {
-		data.Error ="Please enter a URL to shorten"
+		data.Error = "Please enter a URL to shorten"
 		err := tmpl.ExecuteTemplate(w, "base", data)
 		if err != nil {
 			http.Error(w, "failed to load template", http.StatusInternalServerError)
@@ -55,7 +55,7 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 			candidate := generateCustomAlias(5)
 			exists, err := s.db.DB().AliasExists(ctx, candidate)
 			if err != nil {
-				data.Error =  "Database error, please try again"
+				data.Error = "Database error, please try again"
 				err = tmpl.ExecuteTemplate(w, "base", data)
 				if err != nil {
 					http.Error(w, "failed to load template", http.StatusInternalServerError)
@@ -118,7 +118,6 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to load template", http.StatusInternalServerError)
 	}
 }
-
 
 func generateCustomAlias(n int) string {
 	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")

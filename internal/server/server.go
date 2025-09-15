@@ -25,10 +25,9 @@ func CheckPassword(hashedPassword, plainPassword string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(plainPassword))
 }
 
-
 type Server struct {
-	port      int
-	db        database.Service
+	port int
+	db   database.Service
 }
 
 func NewServer() *http.Server {

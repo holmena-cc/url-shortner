@@ -6,6 +6,7 @@ import (
 	"my_project/internal/db"
 	"net/http"
 )
+
 type URLsPageData struct {
 	UrlsCount   int
 	TotalClicks int
@@ -15,7 +16,7 @@ type URLsPageData struct {
 
 func (s *Server) urlsHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(userIDKey).(int32)
-	
+
 	tmpl, err := template.ParseFiles(
 		"web/templates/base.html",
 		"web/templates/urls.html",

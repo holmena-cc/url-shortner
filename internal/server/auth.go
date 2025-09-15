@@ -8,7 +8,9 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 )
+
 type contextKey string
+
 const userIDKey = contextKey("userId")
 
 var jwtKey = []byte(os.Getenv("JWT_KEY")) // load key from env
@@ -47,7 +49,7 @@ func AuthMiddleware(next http.Handler) http.Handler {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-		ctx := context.WithValue(r.Context(),userIDKey, claims.UserID)
+		ctx := context.WithValue(r.Context(), userIDKey, claims.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

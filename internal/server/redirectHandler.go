@@ -15,15 +15,15 @@ func (s *Server) redirectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := r.Context()
-	
+
 	// 2. find original URL
-	url, err := s.db.DB().GetUrlByAlias(ctx,alias);
+	url, err := s.db.DB().GetUrlByAlias(ctx, alias)
 	if err != nil {
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
 	}
 	// 3. register the visit
-	createVisitParams := db.CreateVisitParams {
+	createVisitParams := db.CreateVisitParams{
 		UrlID:     url.UrlID,
 		IpAddress: "127.0.0.1",
 		Referrer:  sql.NullString{String: "testing", Valid: true},

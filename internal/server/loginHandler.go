@@ -7,10 +7,12 @@ import (
 	"net/http"
 	"time"
 )
+
 type loginPageData struct {
-	Error string
+	Error      string
 	IsLoggedIn bool
 }
+
 func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	// Parse templates once
 	tmpl, err := template.ParseFiles(
@@ -24,11 +26,11 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("template parse error:", err)
 		return
 	}
-	
+
 	_, ok := r.Context().Value(userIDKey).(int32)
 	data := loginPageData{
 		IsLoggedIn: ok,
-		Error: "",
+		Error:      "",
 	}
 	switch r.Method {
 	case http.MethodGet:
@@ -50,7 +52,7 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 		user, dbErr := s.db.DB().GetUserByEmail(context.Background(), email)
 		if dbErr != nil {
-			data.Error = "❌ Incorrect email or password";
+			data.Error = "❌ Incorrect email or password"
 			tmpl.ExecuteTemplate(w, "base", data)
 			return
 		}

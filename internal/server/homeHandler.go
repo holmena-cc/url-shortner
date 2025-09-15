@@ -10,8 +10,9 @@ type HomePageData struct {
 	LongURL     string
 	CustomAlias string
 	Error       string
-	IsLoggedIn bool
+	IsLoggedIn  bool
 }
+
 func (s *Server) homeHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := template.ParseFiles(
 		"web/templates/base.html",
@@ -24,12 +25,12 @@ func (s *Server) homeHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-    _ , ok := r.Context().Value(userIDKey).(int32)
+	_, ok := r.Context().Value(userIDKey).(int32)
 	data := HomePageData{
 		LongURL:     "",
 		CustomAlias: "",
 		Error:       "",
-		IsLoggedIn: ok,
+		IsLoggedIn:  ok,
 	}
 	err = tmpl.ExecuteTemplate(w, "base", data)
 	if err != nil {

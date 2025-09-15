@@ -11,6 +11,7 @@ build:
 run:
 	@go run cmd/api/main.go
 
+# Build Tailwind CSS
 tailwind:
 	npx tailwindcss -i ./web/static/input.css -o ./web/static/output.css
 

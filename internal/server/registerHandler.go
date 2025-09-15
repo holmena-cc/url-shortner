@@ -7,7 +7,8 @@ import (
 	"my_project/internal/db"
 	"net/http"
 )
-type LoginPageData struct {
+
+type registerPageData struct {
 	Error string
 	Email string
 }
@@ -48,17 +49,16 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 		_, dbErr := s.db.DB().GetUserByEmail(context.Background(), email)
 		// If a user with this email already exists
 		if dbErr == nil {
-			tmpl.ExecuteTemplate(w, "base", LoginPageData{
+			tmpl.ExecuteTemplate(w, "base", registerPageData{
 				Error: "❌ User with this email already exists",
 				Email: "",
 			})
 			return
 		}
 		if password != ConfirmPassword {
-			tmpl.ExecuteTemplate(w, "base", LoginPageData{
+			tmpl.ExecuteTemplate(w, "base", registerPageData{
 				Error: "❌ Passwords do not match",
 				Email: email,
-
 			})
 			return
 		}

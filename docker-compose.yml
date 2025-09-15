@@ -34,8 +34,6 @@ services:
       - psql_volume_bp:/var/lib/postgresql/data
       # Mount SQL migrations
       - ./db:/docker-entrypoint-initdb.d 
-      # * NOTE: If the database already exists in the volume, PostgreSQL won't run these automatically.
-      # * You need to run migration SQL files manually using 'docker exec' on the container.
     healthcheck:
       test: ["CMD-SHELL", "sh -c 'pg_isready -U ${BLUEPRINT_DB_USERNAME} -d ${BLUEPRINT_DB_DATABASE}'"]
       interval: 5s

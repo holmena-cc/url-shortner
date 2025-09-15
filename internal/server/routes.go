@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 )
+
 func (s *Server) RegisterRoutes() http.Handler {
 	mux := http.NewServeMux()
 
@@ -23,10 +24,5 @@ func (s *Server) RegisterRoutes() http.Handler {
 	mux.Handle("/shortner", AuthMiddleware(http.HandlerFunc(s.shortnerHandler)))
 	mux.Handle("/delete-url", AuthMiddleware(http.HandlerFunc(s.deleteURLHandler)))
 
-
 	return mux
 }
-
-
-
-
