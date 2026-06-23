@@ -6,55 +6,54 @@ services:
       target: prod
     restart: unless-stopped
     ports:
-      - ${PORT}:${PORT}
+      - "${PORT:-8080}:${PORT:-8080}"
     environment:
-      APP_ENV: ${APP_ENV}
-      PORT: ${PORT}
-      BLUEPRINT_DB_HOST: ${BLUEPRINT_DB_HOST}
-      BLUEPRINT_DB_PORT: ${BLUEPRINT_DB_PORT}
+      APP_ENV: ${APP_ENV:-production}
+      PORT: ${PORT:-8080}
+      BLUEPRINT_DB_HOST: psql_bp
+      BLUEPRINT_DB_PORT: 5432
       BLUEPRINT_DB_DATABASE: ${BLUEPRINT_DB_DATABASE}
       BLUEPRINT_DB_USERNAME: ${BLUEPRINT_DB_USERNAME}
       BLUEPRINT_DB_PASSWORD: ${BLUEPRINT_DB_PASSWORD}
-      BLUEPRINT_DB_SCHEMA: ${BLUEPRINT_DB_SCHEMA}
+      BLUEPRINT_DB_SCHEMA: ${BLUEPRINT_DB_SCHEMA:-public}
     depends_on:
       psql_bp:
         condition: service_healthy
     networks:
       - blueprint
+
   psql_bp:
-    image: postgres:latest
+    image: postgres:16-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: ${BLUEPRINT_DB_DATABASE}
       POSTGRES_USER: ${BLUEPRINT_DB_USERNAME}
       POSTGRES_PASSWORD: ${BLUEPRINT_DB_PASSWORD}
     ports:
-      - "${BLUEPRINT_DB_PORT}:5432"
+      - "${BLUEPRINT_DB_PORT:-5432}:5432"
     volumes:
       - psql_volume_bp:/var/lib/postgresql/data
-      # Mount SQL migrations
-      - ./db:/docker-entrypoint-initdb.d 
-      # * NOTE: If the database already exists in the volume, PostgreSQL won't run these automatically.
-      # * You need to run migration SQL files manually using 'docker exec' on the container.
+      - ./db/migrations/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "sh -c 'pg_isready -U ${BLUEPRINT_DB_USERNAME} -d ${BLUEPRINT_DB_DATABASE}'"]
+      test: ["CMD-SHELL", "pg_isready -U ${BLUEPRINT_DB_USERNAME} -d ${BLUEPRINT_DB_DATABASE}"]
       interval: 5s
       timeout: 5s
-      retries: 3
-      start_period: 15s
+      retries: 5
+      start_period: 20s
     networks:
       - blueprint
+
   db_viz:
     image: ghcr.io/drizzle-team/gateway:latest
     container_name: db_viz
-    restart: always
+    restart: unless-stopped
     ports:
       - "4983:4983"
     environment:
-      - PORT=4983
-      - STORE_PATH=/app
-      - MASTERPASS=admin123
-      - DATABASE_URL=postgresql://${BLUEPRINT_DB_USERNAME:-melkey}:${BLUEPRINT_DB_PASSWORD:-password1234}@postgres:5432/${BLUEPRINT_DB_DATABASE:-blueprint}
+      PORT: 4983
+      STORE_PATH: /app
+      MASTERPASS: ${DB_VIZ_MASTERPASS:-admin123}
+      DATABASE_URL: postgresql://${BLUEPRINT_DB_USERNAME}:${BLUEPRINT_DB_PASSWORD}@psql_bp:5432/${BLUEPRINT_DB_DATABASE}
     depends_on:
       psql_bp:
         condition: service_healthy
@@ -62,9 +61,10 @@ services:
       - blueprint
     volumes:
       - db_viz_data:/app
+
 volumes:
   psql_volume_bp:
   db_viz_data:
-    driver: local
+
 networks:
   blueprint:

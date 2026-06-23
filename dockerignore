@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+*.exe
+main
+node_modules
+package-lock.json
+package.json
+.git
+.gitignore
+README.md
