@@ -17,7 +17,7 @@ func (s *Server) redirectHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	
 	// 2. find original URL
-	url, err := s.db.DB().GetUrlByAlias(ctx,alias);
+	url, err := s.db.DB().GetUrlByAlias(ctx,alias)
 	if err != nil {
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return

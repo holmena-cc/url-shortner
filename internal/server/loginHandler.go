@@ -50,7 +50,7 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 
 		user, dbErr := s.db.DB().GetUserByEmail(context.Background(), email)
 		if dbErr != nil {
-			data.Error = "❌ Incorrect email or password";
+			data.Error = "❌ Incorrect email or password"
 			tmpl.ExecuteTemplate(w, "base", data)
 			return
 		}
