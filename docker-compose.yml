@@ -44,8 +44,27 @@ services:
       start_period: 15s
     networks:
       - blueprint
-
+  db_viz:
+    image: ghcr.io/drizzle-team/gateway:latest
+    container_name: db_viz
+    restart: always
+    ports:
+      - "4983:4983"
+    environment:
+      - PORT=4983
+      - STORE_PATH=/app
+      - MASTERPASS=admin123
+      - DATABASE_URL=postgresql://${BLUEPRINT_DB_USERNAME:-melkey}:${BLUEPRINT_DB_PASSWORD:-password1234}@postgres:5432/${BLUEPRINT_DB_DATABASE:-blueprint}
+    depends_on:
+      psql_bp:
+        condition: service_healthy
+    networks:
+      - blueprint
+    volumes:
+      - db_viz_data:/app
 volumes:
   psql_volume_bp:
+  db_viz_data:
+    driver: local
 networks:
   blueprint:
