@@ -23,9 +23,10 @@
         class="flex-1 px-4 py-3 rounded-lg bg-gray-700 text-gray-100 border border-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
       />
       <button
+        id="copyBtn"
         type="button"
         onclick="copyShortURL()"
-        class="px-4 py-3 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+        class="px-4 py-3 rounded-lg bg-red-500 text-white hover:bg-red-600 transition min-w-[100px]"
       >
         Copy URL
       </button>
@@ -49,11 +50,22 @@
   </div>
 </section>
 
-<!-- JavaScript for copy button -->
 <script>
   function copyShortURL() {
     const shortUrl = document.getElementById("shortUrl").value;
-    navigator.clipboard.writeText(shortUrl).catch((err) => console.error(err));
+    const btn = document.getElementById("copyBtn");
+
+    navigator.clipboard.writeText(shortUrl).then(() => {
+      btn.textContent = "Copied!";
+      btn.classList.remove("bg-red-500", "hover:bg-red-600");
+      btn.classList.add("bg-green-600");
+
+      setTimeout(() => {
+        btn.textContent = "Copy URL";
+        btn.classList.remove("bg-green-600");
+        btn.classList.add("bg-red-500", "hover:bg-red-600");
+      }, 2000);
+    }).catch((err) => console.error("Copy failed:", err));
   }
 </script>
 {{end}}

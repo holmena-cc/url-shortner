@@ -6,7 +6,7 @@
   >
     <h1 class="text-3xl font-bold text-gray-100 mb-2">Your Dashboard</h1>
     <p class="text-gray-400 text-lg">
-      You’ve created
+      You've created
       <span class="font-semibold text-red-500">{{ .UrlsCount }}</span>
       short links, with
       <span class="font-semibold text-green-500">{{ .TotalClicks }}</span>
@@ -14,6 +14,7 @@
     </p>
   </div>
 
+  {{ if .URLs }}
   <!-- Table Card -->
   <div
     class="overflow-x-auto max-w-6xl mx-auto rounded-2xl bg-gray-800 shadow-lg border border-gray-700"
@@ -21,7 +22,7 @@
     <table class="min-w-full text-left text-sm text-gray-300">
       <thead class="bg-gray-700 text-gray-400 uppercase text-xs">
         <tr>
-          <th class="px-4 py-3">Shortcode</th>
+          <th class="px-4 py-3">Short link</th>
           <th class="px-4 py-3">Original URL</th>
           <th class="px-4 py-3">Created</th>
           <th class="px-4 py-3">Clicks</th>
@@ -31,12 +32,13 @@
       <tbody class="divide-y divide-gray-600">
         {{ range .URLs }}
         <tr class="hover:bg-gray-700 transition">
+          <!-- Show only the alias, link to the full short URL -->
           <td class="px-4 py-3 font-mono text-blue-400">
             <a href="{{ .ShortCode }}" target="_blank" class="hover:underline">
-              {{ .ShortCode }}
+              /r/{{ .CustomAlias }}
             </a>
           </td>
-          <td class="px-4 py-3 truncate max-w-xs">{{ .OriginalUrl }}</td>
+          <td class="px-4 py-3 truncate max-w-xs" title="{{ .OriginalUrl }}">{{ .OriginalUrl }}</td>
           <td class="px-4 py-3 text-gray-400">
             {{ .CreationDate.Format "2006-01-02" }}
           </td>
@@ -46,6 +48,7 @@
               <input type="hidden" name="shortCode" value="{{ .ShortCode }}" />
               <button
                 type="submit"
+                onclick="return confirm('Delete /r/{{ .CustomAlias }}? This cannot be undone.')"
                 class="bg-red-500 hover:bg-red-600 text-white font-semibold px-3 py-1 rounded-lg transition"
               >
                 Delete
@@ -57,5 +60,21 @@
       </tbody>
     </table>
   </div>
+
+  {{ else }}
+  <!-- Empty state -->
+  <div class="max-w-md mx-auto text-center mt-16 flex flex-col items-center space-y-4">
+    <div class="text-6xl">🔗</div>
+    <h2 class="text-gray-100 text-2xl font-bold">No links yet</h2>
+    <p class="text-gray-400">You haven't shortened any URLs. Create your first one now!</p>
+    <a
+      href="/"
+      class="mt-4 inline-block px-6 py-3 rounded-lg bg-red-500 hover:bg-red-600 text-white font-semibold transition"
+    >
+      Shorten a URL
+    </a>
+  </div>
+  {{ end }}
+
 </section>
 {{ end }}

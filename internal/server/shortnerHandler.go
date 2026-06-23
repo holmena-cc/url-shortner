@@ -5,16 +5,20 @@ import (
 	"math/rand"
 	"my_project/internal/db"
 	"net/http"
-	"time"
+	"net/url"
+	"os"
+	"regexp"
 )
 
 type PageData struct {
 	LongURL     string
 	CustomAlias string
 	Error       string
-	ShortURL string
+	ShortURL    string
 	IsLoggedIn  bool
 }
+
+var aliasRe = regexp.MustCompile(`^[a-zA-Z0-9-]{3,30}$`)
 
 func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 	userID := r.Context().Value(userIDKey).(int32)
@@ -22,12 +26,12 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to parse form", http.StatusBadRequest)
 		return
 	}
-	
+
 	longURL := r.FormValue("long_url")
 	customAlias := r.FormValue("custom_alias")
 	ctx := r.Context()
-	
-	tmpl, _ := template.ParseFiles(
+
+	homeTmpl, _ := template.ParseFiles(
 		"web/templates/base.html",
 		"web/templates/header.html",
 		"web/templates/footer.html",
@@ -37,29 +41,34 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 	data := PageData{
 		LongURL:     longURL,
 		CustomAlias: customAlias,
-		IsLoggedIn : true,
+		IsLoggedIn:  true,
 	}
-	// Check for empty long URL
-	if longURL == "" {
-		data.Error ="Please enter a URL to shorten"
-		err := tmpl.ExecuteTemplate(w, "base", data)
-		if err != nil {
+
+	renderError := func(msg string) {
+		data.Error = msg
+		if err := homeTmpl.ExecuteTemplate(w, "base", data); err != nil {
 			http.Error(w, "failed to load template", http.StatusInternalServerError)
 		}
+	}
+
+	// Validate long URL
+	if longURL == "" {
+		renderError("Please enter a URL to shorten")
+		return
+	}
+	parsed, err := url.ParseRequestURI(longURL)
+	if err != nil || (parsed.Scheme != "http" && parsed.Scheme != "https") {
+		renderError("Please enter a valid URL starting with http:// or https://")
 		return
 	}
 
-	// Generate alias if empty
+	// Validate or generate alias
 	if customAlias == "" {
 		for {
-			candidate := generateCustomAlias(5)
+			candidate := generateCustomAlias(6)
 			exists, err := s.db.DB().AliasExists(ctx, candidate)
 			if err != nil {
-				data.Error =  "Database error, please try again"
-				err = tmpl.ExecuteTemplate(w, "base", data)
-				if err != nil {
-					http.Error(w, "failed to load template", http.StatusInternalServerError)
-				}
+				renderError("Database error, please try again")
 				return
 			}
 			if !exists {
@@ -68,64 +77,55 @@ func (s *Server) shortnerHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	} else {
+		if !aliasRe.MatchString(customAlias) {
+			renderError("Alias must be 3–30 characters, letters, numbers, and hyphens only")
+			return
+		}
 		exists, err := s.db.DB().AliasExists(ctx, customAlias)
 		if err != nil {
-			data.Error = "Database error, please try again"
-			err = tmpl.ExecuteTemplate(w, "base", data)
-			if err != nil {
-				http.Error(w, "failed to load template", http.StatusInternalServerError)
-			}
+			renderError("Database error, please try again")
 			return
 		}
 		if exists {
-			data.Error = "Custom alias already taken"
-			err = tmpl.ExecuteTemplate(w, "base", data)
-			if err != nil {
-				http.Error(w, "failed to load template", http.StatusInternalServerError)
-			}
+			renderError("Custom alias already taken")
 			return
 		}
 	}
 
-	// Create short URL
-	shortUrl := "http://localhost:5000/r/" + customAlias
+	// Build short URL from env (required in production)
+	baseURL := os.Getenv("APP_BASE_URL")
+	shortURL := baseURL + "/r/" + customAlias
+
 	createURLParams := db.CreateURLParams{
 		OriginalUrl: longURL,
-		ShortCode:   shortUrl,
+		ShortCode:   shortURL,
 		CustomAlias: customAlias,
 		UserID:      userID,
 	}
-	_, err := s.db.DB().CreateURL(ctx, createURLParams)
-	if err != nil {
-		data.Error = "Failed to create short URL"
-		err = tmpl.ExecuteTemplate(w, "base", data)
-		if err != nil {
-			http.Error(w, "failed to load template", http.StatusInternalServerError)
-		}
+	if _, err := s.db.DB().CreateURL(ctx, createURLParams); err != nil {
+		renderError("Failed to create short URL")
 		return
 	}
 
-	// Success: show shortened URL page
-	tmpl, _ = template.ParseFiles(
+	// Success page
+	successTmpl, _ := template.ParseFiles(
 		"web/templates/base.html",
 		"web/templates/header.html",
 		"web/templates/footer.html",
 		"web/templates/shortened.html",
 	)
-	data.ShortURL = shortUrl
-	err = tmpl.ExecuteTemplate(w, "base", data)
-	if err != nil {
+	data.ShortURL = shortURL
+	if err := successTmpl.ExecuteTemplate(w, "base", data); err != nil {
 		http.Error(w, "failed to load template", http.StatusInternalServerError)
 	}
 }
 
-
+// generateCustomAlias uses the package-level rand (auto-seeded in Go 1.20+).
 func generateCustomAlias(n int) string {
-	letters := []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	alias := make([]rune, n)
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	alias := make([]byte, n)
 	for i := range alias {
-		alias[i] = letters[r.Intn(len(letters))]
+		alias[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(alias)
 }
