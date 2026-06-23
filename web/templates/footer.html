@@ -1,13 +1,35 @@
 {{define "footer"}}
-<footer class="bg-gray-800 text-gray-400 border-t border-gray-700 py-6 px-6 flex flex-col items-center space-y-3">
-    <p class="text-sm">&copy; 2025 ShortyLink. All rights reserved.</p>
-    <nav class="flex space-x-3 text-sm">
-        <a href="/" class="text-blue-400 hover:text-red-500 transition-colors">Home</a>
-        <span class="text-gray-400">|</span>
-        <a href="/contact" class="text-blue-400 hover:text-red-500 transition-colors">Contact us</a>
-        <span class="text-gray-400">|</span>
-        <a href="/login" class="text-blue-400 hover:text-red-500 transition-colors">Register/Login</a>
-    </nav>
-    <p class="text-gray-400 text-sm italic">Making URLs tiny, one click at a time!</p>
+<footer class="bg-gray-900 border-t border-gray-800/80 mt-auto">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 py-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-8">
+
+        <!-- Brand -->
+        <div class="flex flex-col items-center sm:items-start gap-3 text-center sm:text-left">
+            <a href="/" class="flex items-center gap-2.5 group">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-red-500 to-rose-600 shadow-md shadow-red-500/20 flex items-center justify-center shrink-0 text-sm leading-none transition-transform duration-200 group-hover:scale-105 group-hover:rotate-[-4deg]">
+                    🔗
+                </div>
+                <span class="text-gray-50 font-bold text-base tracking-tight group-hover:text-white transition-colors">
+                    ShortyLink
+                </span>
+            </a>
+            <p class="text-gray-500 text-sm max-w-xs">
+                Making URLs tiny, one click at a time.
+            </p>
+        </div>
+
+        <!-- Links -->
+        <nav class="flex flex-col items-center sm:items-start gap-2.5 text-sm">
+            <span class="text-gray-300 font-semibold text-xs uppercase tracking-wider mb-1">Navigate</span>
+            <a href="/"        class="text-gray-500 hover:text-red-400 transition-colors">Home</a>
+            <a href="/urls"    class="text-gray-500 hover:text-red-400 transition-colors">My URLs</a>
+            <a href="/contact" class="text-gray-500 hover:text-red-400 transition-colors">Contact us</a>
+        </nav>
+    </div>
+
+    <div class="border-t border-gray-800/80 px-4 sm:px-6 py-5">
+        <p class="text-gray-500 text-xs text-center">
+            &copy; 2026 ShortyLink. All rights reserved.
+        </p>
+    </div>
 </footer>
 {{end}}
